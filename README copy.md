@@ -1,1 +1,0 @@
-# Kelsen-Graph Architecture PoC.
