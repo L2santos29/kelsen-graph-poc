@@ -1,67 +1,102 @@
-# Kelsen-Graph PoC: Deterministic LegalTech Architecture
+# Kelsen-Graph PoC — Neuro-Symbolic Contract Intelligence
+
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![CI](https://github.com/L2santos29/kelsen-graph-poc/actions/workflows/ci.yml/badge.svg)](https://github.com/L2santos29/kelsen-graph-poc/actions/workflows/ci.yml)
+[![Project Status](https://img.shields.io/badge/Status-Production--Style%20PoC-0A7E3B)](#)
+[![Paradigm](https://img.shields.io/badge/Paradigm-Neuro--Symbolic-6A1B9A)](#)
 
 [![📄 Read the Official Whitepaper (PDF)](https://img.shields.io/badge/%F0%9F%93%84%20Read%20the%20Official%20Whitepaper%20(PDF)-Open-blue?style=for-the-badge)](docs/Whitepaper_KelsenGraph_LuisDosSantos.pdf)
-[![CI](https://github.com/L2santos29/kelsen-graph-poc/actions/workflows/ci.yml/badge.svg)](https://github.com/L2santos29/kelsen-graph-poc/actions/workflows/ci.yml)
 
-A Proof of Concept (PoC) demonstrating a neuro-symbolic architecture to reduce Large Language Model (LLM) hallucinations in LegalTech. The system forces probabilistic AI extraction through a deterministic Python logic graph for auditable, reproducible contract analysis.
+Kelsen-Graph is a LegalTech Proof of Concept designed to reduce LLM hallucination risk in contract analysis by separating probabilistic extraction from deterministic legal reasoning.
 
-## Architecture
+---
 
-This project is intentionally split into three layers:
+## 1) Problem vs. Solution
 
-- **The "Eyes" (Probabilistic Layer)**
-	- `src/llm_extractor.py` performs NLP extraction from legal text using an LLM.
-	- Prompting is strict and output is expected in a constrained JSON schema.
+### The Problem: Black-Box LLM Risk in Legal Workflows
 
-- **The "Customs" (Validation Layer)**
-	- Pydantic validates extracted payloads before they enter the reasoning system.
-	- Invalid or malformed fields are rejected early with explicit exceptions.
+Pure LLM pipelines are probabilistic. In legal and compliance contexts, probabilistic behavior can produce inconsistent clause interpretation, fabricated exceptions, or malformed outputs that create financial and regulatory exposure.
 
-- **The "Brain" (Deterministic Layer)**
-	- `src/logic_graph.py` evaluates legal rules in pure Python.
-	- Final compliance decisions are deterministic, inspectable, and independent of AI randomness.
+### The Solution: Neuro-Symbolic Decoupling
 
-## Quick Start
+Kelsen-Graph enforces a strict architecture:
+
+- **Eyes (LLM Extractor):** The LLM only extracts structured facts.
+- **Customs (Pydantic Validation):** Every extracted field is type-checked and schema-validated.
+- **Brain (Deterministic Logic Graph):** Pure Python rules issue auditable verdicts.
+
+Result: no hidden reasoning, no silent coercions, and traceable policy decisions.
+
+---
+
+## 2) Zero-Setup Executive Demo
+
+No Python setup, no API key, no paid calls required.
 
 ```bash
 git clone https://github.com/L2santos29/kelsen-graph-poc.git
 cd kelsen-graph-poc
-
-python -m venv .venv
-source .venv/bin/activate
-
-pip install -r requirements.txt
-python main.py
+./run_demo.sh
 ```
 
-## Configuration & Security
+What the launcher does automatically:
 
-1. Create your local configuration from the template:
+1. Verifies `python3` is installed.
+2. Creates/activates `.venv`.
+3. Installs dependencies silently.
+4. Runs `demo.py --mock`.
+5. Shows a staged 4-act terminal narrative ending in a legal verdict.
 
-	 ```bash
-	 cp .env.example .env
-	 ```
+Example output (abridged):
 
-2. Choose one execution mode:
-	 - **Live API mode:** set `LLM_API_KEY` and `LLM_API_URL` in `.env`.
-	 - **Mock mode (recommended for evaluators):** set `LLM_MOCK_RESPONSE_JSON` with a valid JSON payload.
+```text
+[ACT 1/4] Reading legal document...
+[ACT 2/4] The 'Eyes' (Neuro-Symbolic Extraction)
+[ACT 3/4] The 'Brain' (Deterministic Logic Graph)
+[ACT 4/4] Final Verdict
+🟢 APPROVED
+```
 
-The mock mode is designed for zero-cost local execution: no external API key, no paid calls, and no network dependency.
+---
 
-## Testing Strategy
+## 3) Engineering Standards (CTO View)
 
-- Test framework: `pytest`
-- Mocking approach: LLM calls are simulated through mock-based patching (`pytest-mock`, with `unittest.mock`-style patterns).
-- Resilience checks cover malformed model output, simulated network timeouts, and extraction failures before deterministic evaluation.
-- CI (`.github/workflows/ci.yml`) runs the suite without real API keys or external calls, keeping pipelines fast and reproducible.
+This PoC is built with production-style software discipline:
 
-Run tests locally:
+- **Strict Data Contracts:** Pydantic models for extraction and evaluation outputs.
+- **Deterministic Rule Engine:** Isolated policy rules in `src/logic_graph.py`.
+- **Structured Error Taxonomy:** Domain exceptions for extraction, parsing, and validation failures.
+- **Static Quality Gates:** Ruff + Mypy enforced locally and in CI.
+- **Automated Testing:** Pytest + mock strategy for fast, offline, reproducible checks.
+- **Developer Orchestration:** `Makefile` for `lint`, `test`, `format`, and `demo`.
+- **CI/CD Quality Gate:** GitHub Actions blocks low-quality merges before tests even run.
+
+Core commands:
 
 ```bash
-pytest -q
+make lint
+make test
+make demo
 ```
 
-## About & References
+---
 
-- Whitepaper (PDF): [Whitepaper_KelsenGraph_LuisDosSantos.pdf](docs/Whitepaper_KelsenGraph_LuisDosSantos.pdf)
+## 4) Data-Driven Scenario Suite
+
+The `data/` directory includes explicit legal test scenarios:
+
+- `contract_01_standard_approval.txt` → safe, policy-aligned baseline.
+- `contract_02_high_risk_rejection.txt` → hidden financial red-flag profile.
+- `contract_03_government_exception.txt` → conditional government exception path.
+
+This allows the same architecture to demonstrate approval, rejection, and exception handling under controlled conditions.
+
+---
+
+## 5) Author
+
+Built by a **Legal Engineer** focused on bridging strict legal doctrine and auditable software execution.
+
 - LinkedIn: [Author Profile (replace with your URL)](https://www.linkedin.com/in/your-profile)
+
+If you are evaluating this project for hiring, partnership, or product incubation, start with the whitepaper and then run the zero-setup demo.
