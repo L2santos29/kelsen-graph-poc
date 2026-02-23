@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import pytest
+from pytest_mock import MockerFixture
 
 from src.exceptions import LLMExtractionError, LegalDataValidationError
 from src.llm_extractor import _call_llm_api, extraer_datos_contrato
@@ -30,7 +31,7 @@ def _build_valid_raw_json() -> str:
 	)
 
 
-def test_extraer_datos_contrato_happy_path_returns_contractdata(mocker: pytest.MockFixture) -> None:
+def test_extraer_datos_contrato_happy_path_returns_contractdata(mocker: MockerFixture) -> None:
 	"""Debe convertir una respuesta JSON perfecta en un modelo Pydantic válido."""
 	mocker.patch("src.llm_extractor.get_llm_api_key", return_value="test-api-key")
 	mocker.patch("src.llm_extractor._call_llm_api", return_value=_build_valid_raw_json())
@@ -43,7 +44,7 @@ def test_extraer_datos_contrato_happy_path_returns_contractdata(mocker: pytest.M
 
 
 def test_extraer_datos_contrato_hallucinated_enum_raises_validation_error(
-	mocker: pytest.MockFixture,
+	mocker: MockerFixture,
 ) -> None:
 	"""Debe interceptar jurisdicciones inválidas y elevar LegalDataValidationError."""
 	payload = json.loads(_build_valid_raw_json())
@@ -57,7 +58,7 @@ def test_extraer_datos_contrato_hallucinated_enum_raises_validation_error(
 
 
 def test_call_llm_api_timeout_raises_llm_extraction_error(
-	mocker: pytest.MockFixture,
+	mocker: MockerFixture,
 	monkeypatch: pytest.MonkeyPatch,
 ) -> None:
 	"""Debe convertir un timeout de red en LLMExtractionError de dominio."""
