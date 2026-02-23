@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import logging
 import os
 import sys
@@ -20,7 +21,28 @@ class ContractFileError(Exception):
     """Raised when the input contract file cannot be loaded."""
 
 
-def run_pipeline() -> int:
+def build_argument_parser() -> argparse.ArgumentParser:
+    """Create CLI parser for Kelsen-Graph execution parameters.
+
+    Returns:
+        Configured `ArgumentParser` with supported CLI options.
+    """
+    parser = argparse.ArgumentParser(
+        description="Kelsen-Graph: Evaluación de Contratos con IA",
+    )
+    parser.add_argument(
+        "--file",
+        type=str,
+        default="data/dummy_contract.txt",
+        help=(
+            "Ruta al archivo de contrato en texto plano (.txt). "
+            "Por defecto: data/dummy_contract.txt"
+        ),
+    )
+    return parser
+
+
+def run_pipeline(contract_file_path: str) -> int:
     """Run the end-to-end orchestration pipeline.
 
     Flow:
@@ -49,7 +71,7 @@ def run_pipeline() -> int:
             "Create/update .env before running the pipeline."
         )
 
-    contract_path = Path("data") / "dummy_contract.txt"
+    contract_path = Path(contract_file_path)
     try:
         contract_text = contract_path.read_text(encoding="utf-8")
     except OSError as exc:
@@ -78,9 +100,11 @@ def main() -> int:
         level=logging.INFO,
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     )
+    parser = build_argument_parser()
+    args = parser.parse_args()
 
     try:
-        return run_pipeline()
+        return run_pipeline(contract_file_path=args.file)
     except ContractFileError as exc:
         logger.error("Input file failure: %s", exc)
         return 2
