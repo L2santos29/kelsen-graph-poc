@@ -1,0 +1,13 @@
+PUBLIC SECTOR ANALYTICS SERVICES AGREEMENT
+
+This Public Sector Analytics Services Agreement is entered into as of March 1, 2026, by and between Northbridge Analytics, Inc. ("Contractor") and the Ministry of Public Health and Social Protection of the Republic of Arandia (the "Ministry"), acting through its Federal Procurement Directorate.
+
+The Ministry confirms that it is a sovereign governmental authority and that this Agreement is executed for official public-administration purposes pursuant to national procurement statutes and implementing regulations. Contractor acknowledges that performance under this Agreement may be subject to audit rights, disclosure obligations, and mandatory public-law controls applicable to federal ministries.
+
+Contractor shall provide compliance analytics, policy-risk classification, and procurement screening services for high-volume public tenders. Given the scale of governmental operations and statutory service-level obligations, the parties recognize that interruption or material failure may produce substantial institutional losses and broad third-party exposure.
+
+Except as otherwise required by non-waivable law, the aggregate monetary liability associated with Contractor performance, including direct damages and approved remediation costs, is stated for budgeting purposes at two million five hundred thousand U.S. dollars (USD 2,500,000).
+
+Any indemnification obligations under this Agreement shall be interpreted in a manner consistent with sovereign-procurement law, fiscal responsibility statutes, and mandatory public-sector limitations, and shall be escalated for legal interpretation where conflict exists between private contracting language and governmental legal framework.
+
+This Agreement shall be governed by Delaware law for contractual interpretation; however, the parties acknowledge that governmental compliance and exception handling may require policy-based escalation under Contractor's public-sector governance process.

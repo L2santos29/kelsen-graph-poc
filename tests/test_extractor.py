@@ -23,6 +23,7 @@ def _build_valid_raw_json() -> str:
 			"auto_renewal": True,
 			"non_renewal_notice_days": 15,
 			"has_arbitration_clause": False,
+			"is_government_entity": False,
 			"liability_cap_amount": 500000.0,
 			"indemnification_uncapped": False,
 			"confidentiality_survival_years": 3,

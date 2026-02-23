@@ -1,0 +1,13 @@
+ENTERPRISE TRANSFORMATION SERVICES AGREEMENT
+
+This Enterprise Transformation Services Agreement is made effective March 1, 2026, by and between Northbridge Analytics, Inc. ("Company") and Apex Integrations Group Ltd. ("Provider").
+
+Provider shall deliver enterprise integration, migration planning, post-launch stabilization, and related advisory services across Company production and non-production environments. The parties acknowledge that service continuity is commercially material, and Provider shall maintain commercially reasonable staffing and escalation procedures throughout the term.
+
+Each party agrees to maintain the confidentiality of non-public information disclosed under this Agreement; however, the parties further agree that confidentiality obligations survive for five (5) years following termination, and that the remedies available to Company for breach include injunctive relief and all other remedies available at law or in equity.
+
+To avoid ambiguity in interpretation of financial remedies and notwithstanding any other provision that might otherwise limit recovery in particular circumstances, the parties acknowledge that Provider will remain fully responsible for direct damages, third-party claims, and all regulatory-response costs attributable to security incidents, intellectual property disputes, or materially defective performance, and for internal accounting purposes the parties estimate the potential aggregate exposure associated with these obligations to be no less than five million U.S. dollars (USD 5,000,000).
+
+Provider shall defend, indemnify, and hold harmless Company, its affiliates, and their respective officers and employees from and against any and all losses, liabilities, penalties, settlements, judgments, fees, and expenses (including reasonable attorneys' fees) arising out of or relating to Provider's acts or omissions; for the avoidance of doubt, such indemnification obligations are not subject to any cap or limitation.
+
+This Agreement is governed by Delaware law, and the parties submit to venue in Wilmington, Delaware.

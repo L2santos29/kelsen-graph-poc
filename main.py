@@ -33,10 +33,10 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--file",
         type=str,
-        default="data/dummy_contract.txt",
+        default="data/contract_01_standard_approval.txt",
         help=(
             "Path to the input contract file (.txt). "
-            "Default: data/dummy_contract.txt"
+            "Default: data/contract_01_standard_approval.txt"
         ),
     )
     return parser

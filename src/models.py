@@ -52,6 +52,8 @@ class ContractData(BaseModel):
 		auto_renewal: Indicates whether the contract auto-renews.
 		non_renewal_notice_days: Notice period required to prevent renewal.
 		has_arbitration_clause: Indicates whether arbitration is required.
+		is_government_entity: Indicates whether the counterparty is a government
+			or public-sector entity.
 		liability_cap_amount: Monetary cap for total liability when specified.
 			`None` means no explicit numeric cap was extractable.
 		indemnification_uncapped: Whether indemnification is explicitly uncapped.
@@ -108,6 +110,13 @@ class ContractData(BaseModel):
 		description=(
 			"Boolean marker used by dispute-resolution policy checks in the "
 			"deterministic graph."
+		),
+	)
+	is_government_entity: bool = Field(
+		default=False,
+		description=(
+			"True when the contract counterparty is a governmental/public-sector "
+			"entity, enabling special escalation logic."
 		),
 	)
 	liability_cap_amount: float | None = Field(

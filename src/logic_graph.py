@@ -64,6 +64,7 @@ def evaluate_liability_cap_rule(contract_data: ContractData) -> RuleResult:
 	Legal rule:
 		A cap above USD 1,000,000 or absence of an explicit cap blocks automatic
 		approval because it increases financial exposure and requires legal review.
+		Government counterparties may follow a policy exception path.
 
 	Args:
 		contract_data: Pydantic-validated contract data.
@@ -93,12 +94,41 @@ def evaluate_liability_cap_rule(contract_data: ContractData) -> RuleResult:
 		)
 
 	if liability_cap > 1_000_000:
+		if contract_data.is_government_entity:
+			return (
+				True,
+				"High liability cap detected, but government-entity exception path applies.",
+			)
 		return (
 			False,
 			"Liability cap exceeds USD 1,000,000; escalate to legal.",
 		)
 
 	return True, "Liability cap is within the allowed threshold."
+
+
+def evaluate_government_exception_rule(contract_data: ContractData) -> RuleResult:
+	"""Emit a warning when government exception path is activated.
+
+	Legal rule:
+		Government counterparties can require policy-based exception routing. This
+		rule provides explicit traceability when high financial terms are tolerated
+		only because the counterparty is governmental.
+
+	Args:
+		contract_data: Pydantic-validated contract data.
+
+	Returns:
+		Tuple of (approved, legal_comment).
+	"""
+	if contract_data.is_government_entity and contract_data.liability_cap_amount:
+		if contract_data.liability_cap_amount > 1_000_000:
+			return (
+				False,
+				"Government entity detected with high liability cap; route via exception workflow.",
+			)
+
+	return True, "No government exception warning triggered."
 
 
 def evaluate_decision_nodes(contract_data: ContractData) -> list[RuleResult]:
@@ -118,6 +148,7 @@ def evaluate_decision_nodes(contract_data: ContractData) -> list[RuleResult]:
 	rules: list[RuleFn] = [
 		evaluate_jurisdiction_rule,
 		evaluate_liability_cap_rule,
+		evaluate_government_exception_rule,
 	]
 
 	results: list[RuleResult] = []
@@ -156,7 +187,8 @@ class ContractEvaluator:
 		"""Initialize the deterministic rule set."""
 		self._rules: list[RuleConfig] = [
 			("jurisdiction", evaluate_jurisdiction_rule, "red_flag"),
-			("liability_cap", evaluate_liability_cap_rule, "warning"),
+			("liability_cap", evaluate_liability_cap_rule, "red_flag"),
+			("government_exception", evaluate_government_exception_rule, "warning"),
 		]
 
 	def evaluate(self, contract_data: ContractData) -> EvaluationReport:

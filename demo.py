@@ -21,7 +21,7 @@ from src.exceptions import JSONParseError, LLMExtractionError, LegalDataValidati
 from src.logic_graph import ContractEvaluator
 from src.models import ContractData, ContractType, Jurisdiction
 
-DEFAULT_CONTRACT_PATH = "data/dummy_contract.txt"
+DEFAULT_CONTRACT_PATH = "data/contract_01_standard_approval.txt"
 
 
 class ContractFileError(Exception):
@@ -68,9 +68,9 @@ def pause(seconds: float, fast_mode: bool) -> None:
         time.sleep(seconds)
 
 
-def build_mock_payload() -> dict[str, object]:
-    """Build a prefabricated extraction payload for offline demo mode."""
-    return {
+def build_mock_payload(contract_file_path: str) -> dict[str, object]:
+    """Build scenario-specific extraction payloads for offline demo mode."""
+    base_payload: dict[str, object] = {
         "contract_type": ContractType.NDA,
         "governing_jurisdiction": Jurisdiction.DELAWARE,
         "effective_date": date(2026, 3, 1),
@@ -78,11 +78,29 @@ def build_mock_payload() -> dict[str, object]:
         "auto_renewal": False,
         "non_renewal_notice_days": None,
         "has_arbitration_clause": False,
+        "is_government_entity": False,
         "liability_cap_amount": 500000.0,
         "indemnification_uncapped": False,
         "confidentiality_survival_years": 3,
         "trade_secret_survival_years": 5,
     }
+
+    file_name = Path(contract_file_path).name
+    if file_name == "contract_02_high_risk_rejection.txt":
+        return {
+            **base_payload,
+            "liability_cap_amount": 5_000_000.0,
+            "indemnification_uncapped": True,
+        }
+
+    if file_name == "contract_03_government_exception.txt":
+        return {
+            **base_payload,
+            "is_government_entity": True,
+            "liability_cap_amount": 2_500_000.0,
+        }
+
+    return base_payload
 
 
 def load_contract_text(contract_file_path: str) -> str:
@@ -115,7 +133,7 @@ def run_demo(contract_file_path: str, mock_mode: bool, fast_mode: bool) -> int:
     print("• LLM running in deterministic mode (temperature=0.0)")
     if mock_mode:
         print("• OFFLINE mode active: local simulation without network or API key")
-        extracted_data = ContractData.model_validate(build_mock_payload())
+        extracted_data = ContractData.model_validate(build_mock_payload(contract_file_path))
     else:
         print("• ONLINE mode active: production extraction flow")
         settings = get_settings()

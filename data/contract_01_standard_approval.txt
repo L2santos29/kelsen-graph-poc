@@ -1,0 +1,13 @@
+MASTER SERVICES AGREEMENT
+
+This Master Services Agreement (the "Agreement") is entered into as of March 1, 2026, by and between Northbridge Analytics, Inc., a Delaware corporation ("Company"), and Harbor Compliance Labs LLC, a Delaware limited liability company ("Vendor").
+
+The parties agree that Vendor will provide contract analytics and compliance support services as further described in one or more Statements of Work executed under this Agreement. Vendor shall perform the services in a professional and workmanlike manner, using personnel with appropriate qualifications and experience.
+
+Each party may disclose confidential or proprietary information to the other in connection with performance of this Agreement. The receiving party shall use such information solely for purposes of performing obligations under this Agreement and shall apply at least reasonable safeguards to prevent unauthorized use or disclosure.
+
+This Agreement shall remain in effect for an initial term of twelve (12) months unless earlier terminated in accordance with its terms. Any extension or renewal must be documented in writing and signed by both parties.
+
+Except for claims arising from fraud or willful misconduct, each party's aggregate liability under this Agreement shall not exceed two hundred fifty thousand U.S. dollars (USD 250,000). Vendor's indemnification obligations for third-party claims arising from Vendor negligence are expressly subject to the same aggregate cap.
+
+This Agreement shall be governed by, and construed in accordance with, the laws of the State of Delaware, without regard to conflict-of-law rules. The parties consent to the exclusive jurisdiction and venue of the state and federal courts located in Wilmington, Delaware.
