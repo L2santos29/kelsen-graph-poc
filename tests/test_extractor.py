@@ -33,10 +33,17 @@ def _build_valid_raw_json() -> str:
 
 def test_extraer_datos_contrato_happy_path_returns_contractdata(mocker: MockerFixture) -> None:
 	"""Debe convertir una respuesta JSON perfecta en un modelo Pydantic válido."""
-	mocker.patch("src.llm_extractor.get_llm_api_key", return_value="test-api-key")
 	mocker.patch("src.llm_extractor._call_llm_api", return_value=_build_valid_raw_json())
 
-	result = extraer_datos_contrato("Contrato de prueba")
+	result = extraer_datos_contrato(
+		"Contrato de prueba",
+		api_key="test-api-key",
+		api_url="https://example.test/v1/chat/completions",
+		model_name="gpt-4o-mini",
+		timeout_seconds=30.0,
+		mock_mode=False,
+		mock_response_json=None,
+	)
 
 	assert isinstance(result, ContractData)
 	assert result.contract_type == ContractType.NDA
@@ -50,22 +57,24 @@ def test_extraer_datos_contrato_hallucinated_enum_raises_validation_error(
 	payload = json.loads(_build_valid_raw_json())
 	payload["governing_jurisdiction"] = "MARTE"
 
-	mocker.patch("src.llm_extractor.get_llm_api_key", return_value="test-api-key")
 	mocker.patch("src.llm_extractor._call_llm_api", return_value=json.dumps(payload))
 
 	with pytest.raises(LegalDataValidationError):
-		extraer_datos_contrato("Contrato de prueba")
+		extraer_datos_contrato(
+			"Contrato de prueba",
+			api_key="test-api-key",
+			api_url="https://example.test/v1/chat/completions",
+			model_name="gpt-4o-mini",
+			timeout_seconds=30.0,
+			mock_mode=False,
+			mock_response_json=None,
+		)
 
 
 def test_call_llm_api_timeout_raises_llm_extraction_error(
 	mocker: MockerFixture,
-	monkeypatch: pytest.MonkeyPatch,
 ) -> None:
 	"""Debe convertir un timeout de red en LLMExtractionError de dominio."""
-	monkeypatch.delenv("LLM_MOCK_RESPONSE_JSON", raising=False)
-	monkeypatch.setenv("LLM_API_URL", "https://example.test/v1/chat/completions")
-	monkeypatch.setenv("LLM_TIMEOUT_SECONDS", "1")
-
 	mocker.patch(
 		"src.llm_extractor.urllib.request.urlopen",
 		side_effect=TimeoutError("simulated timeout"),
@@ -76,4 +85,9 @@ def test_call_llm_api_timeout_raises_llm_extraction_error(
 			system_prompt="system",
 			user_prompt="user",
 			api_key="test-api-key",
+			api_url="https://example.test/v1/chat/completions",
+			model_name="gpt-4o-mini",
+			timeout_seconds=1.0,
+			mock_mode=False,
+			mock_response_json=None,
 		)

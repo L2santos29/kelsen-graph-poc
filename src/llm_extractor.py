@@ -8,42 +8,17 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import socket
 import urllib.error
 import urllib.request
 from typing import Any
 
-from dotenv import load_dotenv
 from pydantic import ValidationError
 
 from .exceptions import JSONParseError, LLMExtractionError, LegalDataValidationError
 from .models import ContractData
 
 logger = logging.getLogger(__name__)
-
-load_dotenv()
-
-
-def get_llm_api_url() -> str:
-	"""Load and validate the LLM API endpoint from environment variables.
-
-	Returns:
-		The target URL from `LLM_API_URL`.
-
-	Raises:
-		LLMExtractionError: If `LLM_API_URL` is missing or empty.
-	"""
-	api_url = os.getenv("LLM_API_URL")
-	if not api_url:
-		logger.critical(
-			"Missing required environment variable: LLM_API_URL. "
-			"Aborting before any LLM API request."
-		)
-		raise LLMExtractionError(
-			"Missing required environment variable 'LLM_API_URL'."
-		)
-	return api_url
 
 
 def _extract_text_from_provider_response(response_body: str) -> str:
@@ -90,13 +65,28 @@ def _extract_text_from_provider_response(response_body: str) -> str:
 	raise LLMExtractionError("Unsupported LLM provider response format.")
 
 
-def _call_llm_api(system_prompt: str, user_prompt: str, api_key: str) -> str:
+def _call_llm_api(
+	system_prompt: str,
+	user_prompt: str,
+	api_key: str,
+	*,
+	api_url: str | None,
+	model_name: str,
+	timeout_seconds: float,
+	mock_mode: bool,
+	mock_response_json: str | None,
+) -> str:
 	"""Call external LLM API and return textual extraction output.
 
 	Args:
 		system_prompt: Strict system instruction with JSON schema.
 		user_prompt: Contract text extraction request.
 		api_key: Provider API key from environment.
+		api_url: Provider API endpoint.
+		model_name: Provider model identifier.
+		timeout_seconds: Request timeout in seconds.
+		mock_mode: Enables network-free mocked LLM output.
+		mock_response_json: Mock JSON payload when mock mode is enabled.
 
 	Returns:
 		Raw model text that should contain exactly one JSON object.
@@ -104,14 +94,16 @@ def _call_llm_api(system_prompt: str, user_prompt: str, api_key: str) -> str:
 	Raises:
 		LLMExtractionError: If network/auth/provider errors occur.
 	"""
-	mock_response = os.getenv("LLM_MOCK_RESPONSE_JSON")
-	if mock_response:
+	if mock_mode:
+		if not mock_response_json:
+			raise LLMExtractionError(
+				"Mock mode is enabled but no mock response payload was provided."
+			)
 		logger.info("LLM mock response enabled via environment; skipping network call.")
-		return mock_response
+		return mock_response_json
 
-	api_url = get_llm_api_url()
-	timeout_seconds = float(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
-	model_name = os.getenv("LLM_MODEL", "gpt-4o-mini")
+	if not api_url:
+		raise LLMExtractionError("Missing LLM API URL for non-mock execution.")
 
 	request_payload = {
 		"model": model_name,
@@ -193,32 +185,16 @@ def build_user_prompt(texto_contrato: str) -> str:
 	)
 
 
-def get_llm_api_key() -> str:
-	"""Load and validate the LLM API key from environment variables.
-
-	Returns:
-		The non-empty API key string from `LLM_API_KEY`.
-
-	Raises:
-		LLMExtractionError: If `LLM_API_KEY` is missing or empty.
-	"""
-	logger.info("Validating LLM API configuration from environment variables.")
-	api_key = os.getenv("LLM_API_KEY")
-
-	if not api_key:
-		logger.critical(
-			"Missing required environment variable: LLM_API_KEY. "
-			"Aborting before any LLM API request."
-		)
-		raise LLMExtractionError(
-			"Missing required environment variable 'LLM_API_KEY'."
-		)
-
-	logger.info("LLM API configuration validated successfully.")
-	return api_key
-
-
-def extraer_datos_contrato(texto_contrato: str) -> ContractData:
+def extraer_datos_contrato(
+	texto_contrato: str,
+	*,
+	api_key: str,
+	api_url: str | None,
+	model_name: str,
+	timeout_seconds: float,
+	mock_mode: bool,
+	mock_response_json: str | None,
+) -> ContractData:
 	"""Extrae cláusulas contractuales desde texto plano usando un proveedor LLM.
 
 	La función define la frontera tipada entre el módulo probabilístico de
@@ -228,6 +204,12 @@ def extraer_datos_contrato(texto_contrato: str) -> ContractData:
 	Args:
 		texto_contrato: Contenido completo del contrato en texto plano que será
 			analizado por el LLM.
+		api_key: API key validada por la capa de configuración central.
+		api_url: Endpoint del proveedor LLM para modo real.
+		model_name: Identificador del modelo LLM a invocar.
+		timeout_seconds: Timeout máximo por llamada de red.
+		mock_mode: Habilita simulación local sin salida a internet.
+		mock_response_json: Payload JSON simulado para modo mock.
 
 	Returns:
 		ContractData: Instancia validada del modelo Pydantic con las cláusulas
@@ -242,7 +224,6 @@ def extraer_datos_contrato(texto_contrato: str) -> ContractData:
 			de `ContractData`.
 	"""
 	logger.info("Starting contract extraction request to LLM provider.")
-	api_key = get_llm_api_key()
 	logger.info("Building strict system prompt with Pydantic JSON schema.")
 	system_prompt = build_system_prompt()
 	user_prompt = build_user_prompt(texto_contrato)
@@ -254,6 +235,11 @@ def extraer_datos_contrato(texto_contrato: str) -> ContractData:
 		system_prompt=system_prompt,
 		user_prompt=user_prompt,
 		api_key=api_key,
+		api_url=api_url,
+		model_name=model_name,
+		timeout_seconds=timeout_seconds,
+		mock_mode=mock_mode,
+		mock_response_json=mock_response_json,
 	)
 
 	# Layer 2: parse output text into JSON payload.

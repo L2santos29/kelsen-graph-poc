@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
+from pydantic import ValidationError
 
+from src.config import Settings, get_settings
 from src.exceptions import JSONParseError, LLMExtractionError, LegalDataValidationError
 from src.llm_extractor import extraer_datos_contrato
 from src.logic_graph import ContractEvaluator
@@ -42,12 +42,12 @@ def build_argument_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def run_pipeline(contract_file_path: str) -> int:
+def run_pipeline(contract_file_path: str, settings: Settings) -> int:
     """Run the end-to-end orchestration pipeline.
 
     Flow:
         1) Load environment variables safely.
-        2) Validate required API credentials.
+        2) Validate required runtime configuration.
         3) Read raw contract text from disk.
         4) Extract structured data with the LLM module.
         5) Evaluate deterministic legal rules.
@@ -62,15 +62,6 @@ def run_pipeline(contract_file_path: str) -> int:
         JSONParseError: If LLM output is not valid JSON.
         LegalDataValidationError: If extracted payload violates Pydantic schema.
     """
-    load_dotenv()
-
-    api_key = os.getenv("LLM_API_KEY")
-    if not api_key:
-        raise LLMExtractionError(
-            "Missing required environment variable 'LLM_API_KEY'. "
-            "Create/update .env before running the pipeline."
-        )
-
     contract_path = Path(contract_file_path)
     try:
         contract_text = contract_path.read_text(encoding="utf-8")
@@ -81,7 +72,15 @@ def run_pipeline(contract_file_path: str) -> int:
 
     logger.info("Input contract loaded from %s", contract_path)
 
-    extracted_data = extraer_datos_contrato(contract_text)
+    extracted_data = extraer_datos_contrato(
+        contract_text,
+        api_key=settings.llm_api_key,
+        api_url=settings.llm_api_url,
+        model_name=settings.llm_model,
+        timeout_seconds=settings.llm_timeout_seconds,
+        mock_mode=settings.llm_mock_mode,
+        mock_response_json=settings.llm_mock_response_json,
+    )
     evaluator = ContractEvaluator()
     report = evaluator.evaluate(extracted_data)
 
@@ -104,7 +103,11 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        return run_pipeline(contract_file_path=args.file)
+        settings = get_settings()
+        return run_pipeline(contract_file_path=args.file, settings=settings)
+    except ValidationError as exc:
+        logger.error("Configuration validation failed: %s", exc)
+        return 3
     except ContractFileError as exc:
         logger.error("Input file failure: %s", exc)
         return 2
