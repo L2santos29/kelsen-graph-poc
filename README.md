@@ -36,7 +36,15 @@ No Python setup, no API key, no paid calls required.
 ```bash
 git clone https://github.com/L2santos29/kelsen-graph-poc.git
 cd kelsen-graph-poc
-./run_demo.sh
+bash run_demo.sh
+```
+
+**For Windows (PowerShell):**
+
+```powershell
+git clone https://github.com/L2santos29/kelsen-graph-poc.git
+cd kelsen-graph-poc
+python -m venv .venv ; .venv\Scripts\activate ; pip install -q -r requirements.txt ; python demo.py --mock
 ```
 
 What the launcher does automatically:
