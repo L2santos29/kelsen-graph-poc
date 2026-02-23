@@ -2,3 +2,5 @@ pydantic
 python-dotenv
 pytest
 pytest-mock
+ruff
+mypy
