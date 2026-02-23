@@ -1,4 +1,4 @@
-.PHONY: install lint format test clean
+.PHONY: install lint format test clean demo
 
 PYTHON ?= python
 
@@ -22,3 +22,6 @@ clean:
 	find . -type d -name ".pytest_cache" -prune -exec rm -rf {} +
 	find . -type d -name ".mypy_cache" -prune -exec rm -rf {} +
 	find . -type d -name ".ruff_cache" -prune -exec rm -rf {} +
+
+demo:
+	$(PYTHON) demo.py --mock --fast

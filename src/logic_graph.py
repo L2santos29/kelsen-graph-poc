@@ -18,185 +18,179 @@ RuleFn = Callable[[ContractData], RuleResult]
 RuleConfig = tuple[str, RuleFn, str]
 
 
-def evaluar_regla_jurisdiccion(contract_data: ContractData) -> RuleResult:
-	"""Valida jurisdicción permitida para reducir exposición legal internacional.
+def evaluate_jurisdiction_rule(contract_data: ContractData) -> RuleResult:
+	"""Validate allowed jurisdiction to reduce cross-border legal exposure.
 
-	Regla legal:
-		El departamento legal solo aprueba automáticamente contratos regidos por
-		Delaware o Nueva York. Cualquier otra jurisdicción incrementa el riesgo de
-		litigio transfronterizo, costos procesales y complejidad de ejecución, por
-		lo que debe tratarse como incumplimiento de política base.
+	Legal rule:
+		Legal approves automatic routing only for Delaware or New York governing
+		law. Any other jurisdiction increases litigation complexity and should be
+		treated as a policy failure.
 
 	Args:
-		contract_data: Contrato validado por Pydantic.
+		contract_data: Pydantic-validated contract data.
 
 	Returns:
-		Tupla (aprobado, comentario_legal).
+		Tuple of (approved, legal_comment).
 	"""
-	logger.info("Evaluando regla de jurisdicción.")
+	logger.info("Evaluating jurisdiction rule.")
 	jurisdiction = contract_data.governing_jurisdiction
 
 	if jurisdiction is None:
 		return (
 			False,
-			"Jurisdicción ausente en los datos extraídos; asumir riesgo alto y escalar.",
+			"Jurisdiction missing in extracted data; assume high risk and escalate.",
 		)
 
 	if not isinstance(jurisdiction, Jurisdiction):
 		return (
 			False,
-			"Jurisdicción con formato inválido; asumir riesgo alto y escalar a legal.",
+			"Jurisdiction format is invalid; assume high risk and escalate to legal.",
 		)
 
 	allowed_jurisdictions = {Jurisdiction.DELAWARE, Jurisdiction.NY}
 
 	if jurisdiction in allowed_jurisdictions:
-		return True, "Jurisdicción aprobada por política interna."
+		return True, "Jurisdiction approved by internal policy."
 
 	return (
 		False,
-		"Jurisdicción fuera de política (solo Delaware o NY para aprobación directa).",
+		"Jurisdiction out of policy (only Delaware or NY qualify for direct approval).",
 	)
 
 
-def evaluar_regla_limite_responsabilidad(contract_data: ContractData) -> RuleResult:
-	"""Controla transferencia de riesgo económico vía límite de responsabilidad.
+def evaluate_liability_cap_rule(contract_data: ContractData) -> RuleResult:
+	"""Control financial risk transfer through liability-cap validation.
 
-	Regla legal:
-		Un límite superior a USD 1,000,000 o la ausencia de un límite explícito
-		impide aprobación automática porque amplía la exposición financiera de la
-		compañía y exige revisión manual por Legal/Compliance.
+	Legal rule:
+		A cap above USD 1,000,000 or absence of an explicit cap blocks automatic
+		approval because it increases financial exposure and requires legal review.
 
 	Args:
-		contract_data: Contrato validado por Pydantic.
+		contract_data: Pydantic-validated contract data.
 
 	Returns:
-		Tupla (aprobado, comentario_legal).
+		Tuple of (approved, legal_comment).
 	"""
-	logger.info("Evaluando regla de límite de responsabilidad.")
+	logger.info("Evaluating liability-cap rule.")
 	liability_cap = contract_data.liability_cap_amount
 
 	if liability_cap is None:
 		return (
 			False,
-			"Límite de responsabilidad no identificado; requiere revisión manual.",
+			"Liability cap not identified; manual review is required.",
 		)
 
 	if not isinstance(liability_cap, (int, float)):
 		return (
 			False,
-			"Límite de responsabilidad inválido; asumir riesgo alto y escalar a legal.",
+			"Liability cap is invalid; assume high risk and escalate to legal.",
 		)
 
 	if liability_cap <= 0:
 		return (
 			False,
-			"Límite de responsabilidad no positivo; requiere validación manual.",
+			"Liability cap is non-positive; manual validation is required.",
 		)
 
 	if liability_cap > 1_000_000:
 		return (
 			False,
-			"Límite de responsabilidad superior a USD 1,000,000; escalar a legal.",
+			"Liability cap exceeds USD 1,000,000; escalate to legal.",
 		)
 
-	return True, "Límite de responsabilidad dentro del umbral permitido."
+	return True, "Liability cap is within the allowed threshold."
 
 
-def evaluar_nodos_decision(contract_data: ContractData) -> list[RuleResult]:
-	"""Ejecuta reglas aisladas para producir trazabilidad de cumplimiento legal.
+def evaluate_decision_nodes(contract_data: ContractData) -> list[RuleResult]:
+	"""Execute isolated rules to produce auditable legal compliance traces.
 
-	Racional de negocio:
-		La evaluación separada por nodos evita lógica monolítica, permite auditoría
-		regla-por-regla y conserva evidencia clara de qué políticas corporativas se
-		cumplen o se violan en cada contrato.
+	Business rationale:
+		Node-by-node evaluation prevents monolithic logic, enables per-rule audit,
+		and preserves clear evidence of policy compliance and violations.
 
 	Args:
-		contract_data: Contrato validado por Pydantic.
+		contract_data: Pydantic-validated contract data.
 
 	Returns:
-		Lista ordenada de resultados (aprobado, comentario_legal), uno por regla.
+		Ordered list of (approved, legal_comment), one tuple per rule.
 	"""
-	logger.info("Iniciando evaluación determinista de nodos de decisión.")
-	reglas: list[RuleFn] = [
-		evaluar_regla_jurisdiccion,
-		evaluar_regla_limite_responsabilidad,
+	logger.info("Starting deterministic decision-node evaluation.")
+	rules: list[RuleFn] = [
+		evaluate_jurisdiction_rule,
+		evaluate_liability_cap_rule,
 	]
 
-	resultados: list[RuleResult] = []
-	for regla in reglas:
+	results: list[RuleResult] = []
+	for rule in rules:
 		try:
-			aprobado, comentario = regla(contract_data)
+			approved, comment = rule(contract_data)
 		except Exception as exc:
-			logger.error("Fallo interno evaluando %s: %s", regla.__name__, exc)
-			aprobado, comentario = (
+			logger.error("Internal failure while evaluating %s: %s", rule.__name__, exc)
+			approved, comment = (
 				False,
-				f"Fallo interno de evaluación en {regla.__name__}; asumir riesgo alto.",
+				f"Internal evaluation failure in {rule.__name__}; assume high risk.",
 			)
 		logger.info(
-			"Resultado de %s | aprobado=%s | comentario=%s",
-			regla.__name__,
-			aprobado,
-			comentario,
+			"Result for %s | approved=%s | comment=%s",
+			rule.__name__,
+			approved,
+			comment,
 		)
-		resultados.append((aprobado, comentario))
+		results.append((approved, comment))
 
-	return resultados
+	return results
 
 
 class ContractEvaluator:
-	"""Orquestador determinista del grafo lógico para evaluación contractual.
+	"""Deterministic orchestration engine for contract policy evaluation.
 
-	Esta clase ejecuta todas las reglas registradas, acumula hallazgos y retorna
-	un reporte formal e inmutable (`EvaluationReport`) sin detenerse ante el
-	primer incumplimiento.
+	This class executes all registered rules, accumulates findings, and returns
+	an immutable `EvaluationReport` without stopping on the first failure.
 
-	Racional de negocio:
-		El objetivo no es "fallar rápido", sino producir un dictamen integral para
-		que el equipo legal vea simultáneamente todas las banderas rojas y
-		advertencias antes de negociar o rechazar el contrato.
+	Business rationale:
+		The goal is not just fail-fast behavior, but a full legal assessment where
+		red flags and warnings are visible together for decision-making.
 	"""
 
 	def __init__(self) -> None:
-		"""Inicializa el set de reglas del motor determinista."""
+		"""Initialize the deterministic rule set."""
 		self._rules: list[RuleConfig] = [
-			("jurisdiccion", evaluar_regla_jurisdiccion, "flag_roja"),
-			("limite_responsabilidad", evaluar_regla_limite_responsabilidad, "advertencia"),
+			("jurisdiction", evaluate_jurisdiction_rule, "red_flag"),
+			("liability_cap", evaluate_liability_cap_rule, "warning"),
 		]
 
 	def evaluate(self, contract_data: ContractData) -> EvaluationReport:
-		"""Construye un veredicto integral y auditable de riesgo contractual.
+		"""Build an auditable, consolidated contract-risk verdict.
 
-		Racional de negocio:
-			El método agrega incumplimientos por severidad para soportar decisiones
-			de aprobación, escalado o rechazo con evidencia estructurada y
-			explicable ante auditoría interna.
+		Business rationale:
+			This method aggregates rule failures by severity to support approval,
+			escalation, or rejection decisions with structured audit evidence.
 
 		Args:
-			contract_data: Contrato validado por Pydantic a evaluar.
+			contract_data: Pydantic-validated contract data to evaluate.
 
 		Returns:
-			EvaluationReport: Resultado formal con aprobación global, flags rojas y
-				advertencias acumuladas.
+			EvaluationReport: Formal output with global approval, red flags, and
+				warnings.
 		"""
-		logger.info("Iniciando evaluación integral del contrato en ContractEvaluator.")
+		logger.info("Starting full contract evaluation in ContractEvaluator.")
 
-		flags_rojas: list[str] = []
-		advertencias: list[str] = []
+		red_flags: list[str] = []
+		warnings: list[str] = []
 
 		for rule_name, rule_fn, severity in self._rules:
 			try:
 				approved, legal_comment = rule_fn(contract_data)
 			except Exception as exc:
-				logger.error("Fallo interno en regla %s: %s", rule_name, exc)
+				logger.error("Internal failure in rule %s: %s", rule_name, exc)
 				approved = False
 				legal_comment = (
-					"Fallo interno del motor al evaluar la regla; "
-					"se aplica postura conservadora (riesgo alto)."
+					"Internal rule-engine failure; "
+					"a conservative high-risk posture is applied."
 				)
-				severity = "flag_roja"
+				severity = "red_flag"
 			logger.info(
-				"Regla=%s | aprobado=%s | severidad=%s | comentario=%s",
+				"Rule=%s | approved=%s | severity=%s | comment=%s",
 				rule_name,
 				approved,
 				severity,
@@ -206,21 +200,21 @@ class ContractEvaluator:
 			if approved:
 				continue
 
-			if severity == "flag_roja":
-				flags_rojas.append(f"[{rule_name}] {legal_comment}")
+			if severity == "red_flag":
+				red_flags.append(f"[{rule_name}] {legal_comment}")
 			else:
-				advertencias.append(f"[{rule_name}] {legal_comment}")
+				warnings.append(f"[{rule_name}] {legal_comment}")
 
-		is_approved = len(flags_rojas) == 0
+		is_approved = len(red_flags) == 0
 		report = EvaluationReport(
 			is_approved=is_approved,
-			flags_rojas=flags_rojas,
-			advertencias=advertencias,
+			red_flags=red_flags,
+			warnings=warnings,
 		)
 		logger.info(
-			"Evaluación finalizada | is_approved=%s | flags_rojas=%d | advertencias=%d",
+			"Evaluation finished | is_approved=%s | red_flags=%d | warnings=%d",
 			report.is_approved,
-			len(report.flags_rojas),
-			len(report.advertencias),
+			len(report.red_flags),
+			len(report.warnings),
 		)
 		return report

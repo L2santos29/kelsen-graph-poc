@@ -148,9 +148,9 @@ class EvaluationReport(BaseModel):
 
 	Attributes:
 		is_approved: Global approval flag. `True` only when no red flags exist.
-		flags_rojas: List of blocking findings that require rejection or legal
+		red_flags: List of blocking findings that require rejection or legal
 			escalation before approval.
-		advertencias: List of non-blocking findings for analyst visibility and
+		warnings: List of non-blocking findings for analyst visibility and
 			follow-up.
 	"""
 
@@ -165,14 +165,14 @@ class EvaluationReport(BaseModel):
 		...,
 		description="Overall deterministic verdict for the evaluated contract.",
 	)
-	flags_rojas: list[str] = Field(
+	red_flags: list[str] = Field(
 		default_factory=list,
 		description=(
 			"Blocking legal findings that violate policy thresholds or mandatory "
 			"controls."
 		),
 	)
-	advertencias: list[str] = Field(
+	warnings: list[str] = Field(
 		default_factory=list,
 		description=(
 			"Non-blocking findings that should be reviewed by legal or compliance."

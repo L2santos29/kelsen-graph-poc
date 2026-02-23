@@ -11,7 +11,7 @@ from pydantic import ValidationError
 
 from src.config import Settings, get_settings
 from src.exceptions import JSONParseError, LLMExtractionError, LegalDataValidationError
-from src.llm_extractor import extraer_datos_contrato
+from src.llm_extractor import extract_contract_data
 from src.logic_graph import ContractEvaluator
 
 logger = logging.getLogger(__name__)
@@ -28,15 +28,15 @@ def build_argument_parser() -> argparse.ArgumentParser:
         Configured `ArgumentParser` with supported CLI options.
     """
     parser = argparse.ArgumentParser(
-        description="Kelsen-Graph: Evaluación de Contratos con IA",
+        description="Kelsen-Graph: AI-Assisted Contract Evaluation",
     )
     parser.add_argument(
         "--file",
         type=str,
         default="data/dummy_contract.txt",
         help=(
-            "Ruta al archivo de contrato en texto plano (.txt). "
-            "Por defecto: data/dummy_contract.txt"
+            "Path to the input contract file (.txt). "
+            "Default: data/dummy_contract.txt"
         ),
     )
     return parser
@@ -72,7 +72,7 @@ def run_pipeline(contract_file_path: str, settings: Settings) -> int:
 
     logger.info("Input contract loaded from %s", contract_path)
 
-    extracted_data = extraer_datos_contrato(
+    extracted_data = extract_contract_data(
         contract_text,
         api_key=settings.llm_api_key,
         api_url=settings.llm_api_url,
@@ -85,10 +85,10 @@ def run_pipeline(contract_file_path: str, settings: Settings) -> int:
     report = evaluator.evaluate(extracted_data)
 
     logger.info(
-        "Pipeline finished | is_approved=%s | flags_rojas=%d | advertencias=%d",
+        "Pipeline finished | is_approved=%s | red_flags=%d | warnings=%d",
         report.is_approved,
-        len(report.flags_rojas),
-        len(report.advertencias),
+        len(report.red_flags),
+        len(report.warnings),
     )
     return 0
 

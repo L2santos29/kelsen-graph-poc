@@ -33,8 +33,8 @@ def test_contract_evaluator_approves_fully_compliant_contract() -> None:
 	report = evaluator.evaluate(contract_data)
 
 	assert report.is_approved is True
-	assert report.flags_rojas == []
-	assert report.advertencias == []
+	assert report.red_flags == []
+	assert report.warnings == []
 
 
 def test_contract_evaluator_rejects_contract_with_disallowed_jurisdiction() -> None:
@@ -47,5 +47,5 @@ def test_contract_evaluator_rejects_contract_with_disallowed_jurisdiction() -> N
 	report = evaluator.evaluate(contract_data)
 
 	assert report.is_approved is False
-	assert len(report.flags_rojas) == 1
-	assert "jurisdiccion" in report.flags_rojas[0]
+	assert len(report.red_flags) == 1
+	assert "jurisdiction" in report.red_flags[0]

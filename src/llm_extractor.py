@@ -167,11 +167,11 @@ def build_system_prompt() -> str:
 	)
 
 
-def build_user_prompt(texto_contrato: str) -> str:
+def build_user_prompt(contract_text: str) -> str:
 	"""Build the user prompt containing the raw contract text to extract.
 
 	Args:
-		texto_contrato: Plain-text legal contract input.
+		contract_text: Plain-text legal contract input.
 
 	Returns:
 		Prompt payload for the model user message.
@@ -180,13 +180,13 @@ def build_user_prompt(texto_contrato: str) -> str:
 		"Extract the required fields from the following contract text. "
 		"Return only one valid JSON object.\n\n"
 		"--- CONTRACT START ---\n"
-		f"{texto_contrato}\n"
+		f"{contract_text}\n"
 		"--- CONTRACT END ---"
 	)
 
 
-def extraer_datos_contrato(
-	texto_contrato: str,
+def extract_contract_data(
+	contract_text: str,
 	*,
 	api_key: str,
 	api_url: str | None,
@@ -195,38 +195,33 @@ def extraer_datos_contrato(
 	mock_mode: bool,
 	mock_response_json: str | None,
 ) -> ContractData:
-	"""Extrae cláusulas contractuales desde texto plano usando un proveedor LLM.
+	"""Extract contract clauses from plain text using an LLM provider.
 
-	La función define la frontera tipada entre el módulo probabilístico de
-	extracción y el resto de la arquitectura determinista. Su salida pública es
-	únicamente un objeto `ContractData` validado.
+	This function defines the typed boundary between probabilistic extraction and
+	the deterministic legal logic layer. Its public output is always a validated
+	`ContractData` object.
 
 	Args:
-		texto_contrato: Contenido completo del contrato en texto plano que será
-			analizado por el LLM.
-		api_key: API key validada por la capa de configuración central.
-		api_url: Endpoint del proveedor LLM para modo real.
-		model_name: Identificador del modelo LLM a invocar.
-		timeout_seconds: Timeout máximo por llamada de red.
-		mock_mode: Habilita simulación local sin salida a internet.
-		mock_response_json: Payload JSON simulado para modo mock.
+		contract_text: Full plain-text contract content to analyze.
+		api_key: API key validated by the centralized settings layer.
+		api_url: LLM provider endpoint for online execution.
+		model_name: LLM model identifier to invoke.
+		timeout_seconds: Maximum timeout per network call.
+		mock_mode: Enables local simulation mode with no internet dependency.
+		mock_response_json: Mock JSON payload used when mock mode is enabled.
 
 	Returns:
-		ContractData: Instancia validada del modelo Pydantic con las cláusulas
-			extraídas y normalizadas.
+		ContractData: Validated Pydantic model instance with normalized clauses.
 
 	Raises:
-		LLMExtractionError: Si falla la configuración, conexión o respuesta base
-			del proveedor LLM.
-		JSONParseError: Si la respuesta del LLM no puede interpretarse como JSON
-			válido.
-		LegalDataValidationError: Si el JSON parseado no cumple el esquema estricto
-			de `ContractData`.
+		LLMExtractionError: If provider config/network/base response fails.
+		JSONParseError: If the LLM response cannot be parsed as valid JSON.
+		LegalDataValidationError: If parsed JSON fails strict `ContractData` schema.
 	"""
 	logger.info("Starting contract extraction request to LLM provider.")
 	logger.info("Building strict system prompt with Pydantic JSON schema.")
 	system_prompt = build_system_prompt()
-	user_prompt = build_user_prompt(texto_contrato)
+	user_prompt = build_user_prompt(contract_text)
 	logger.debug("System prompt prepared with schema length=%d.", len(system_prompt))
 	logger.debug("User prompt prepared with contract length=%d.", len(user_prompt))
 

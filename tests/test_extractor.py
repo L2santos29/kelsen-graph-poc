@@ -8,7 +8,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 from src.exceptions import LLMExtractionError, LegalDataValidationError
-from src.llm_extractor import _call_llm_api, extraer_datos_contrato
+from src.llm_extractor import _call_llm_api, extract_contract_data
 from src.models import ContractData, ContractType, Jurisdiction
 
 
@@ -31,12 +31,12 @@ def _build_valid_raw_json() -> str:
 	)
 
 
-def test_extraer_datos_contrato_happy_path_returns_contractdata(mocker: MockerFixture) -> None:
-	"""Debe convertir una respuesta JSON perfecta en un modelo Pydantic válido."""
+def test_extract_contract_data_happy_path_returns_contractdata(mocker: MockerFixture) -> None:
+	"""Should convert a perfect JSON response into a valid Pydantic model."""
 	mocker.patch("src.llm_extractor._call_llm_api", return_value=_build_valid_raw_json())
 
-	result = extraer_datos_contrato(
-		"Contrato de prueba",
+	result = extract_contract_data(
+		"Test contract",
 		api_key="test-api-key",
 		api_url="https://example.test/v1/chat/completions",
 		model_name="gpt-4o-mini",
@@ -50,18 +50,18 @@ def test_extraer_datos_contrato_happy_path_returns_contractdata(mocker: MockerFi
 	assert result.governing_jurisdiction == Jurisdiction.DELAWARE
 
 
-def test_extraer_datos_contrato_hallucinated_enum_raises_validation_error(
+def test_extract_contract_data_hallucinated_enum_raises_validation_error(
 	mocker: MockerFixture,
 ) -> None:
-	"""Debe interceptar jurisdicciones inválidas y elevar LegalDataValidationError."""
+	"""Should intercept invalid enum values and raise LegalDataValidationError."""
 	payload = json.loads(_build_valid_raw_json())
-	payload["governing_jurisdiction"] = "MARTE"
+	payload["governing_jurisdiction"] = "MARS"
 
 	mocker.patch("src.llm_extractor._call_llm_api", return_value=json.dumps(payload))
 
 	with pytest.raises(LegalDataValidationError):
-		extraer_datos_contrato(
-			"Contrato de prueba",
+		extract_contract_data(
+			"Test contract",
 			api_key="test-api-key",
 			api_url="https://example.test/v1/chat/completions",
 			model_name="gpt-4o-mini",
@@ -74,7 +74,7 @@ def test_extraer_datos_contrato_hallucinated_enum_raises_validation_error(
 def test_call_llm_api_timeout_raises_llm_extraction_error(
 	mocker: MockerFixture,
 ) -> None:
-	"""Debe convertir un timeout de red en LLMExtractionError de dominio."""
+	"""Should convert a network timeout into a domain LLMExtractionError."""
 	mocker.patch(
 		"src.llm_extractor.urllib.request.urlopen",
 		side_effect=TimeoutError("simulated timeout"),
