@@ -97,6 +97,5 @@ This allows the same architecture to demonstrate approval, rejection, and except
 
 Built by a **Legal Engineer** focused on bridging strict legal doctrine and auditable software execution.
 
-- LinkedIn: [Author Profile (replace with your URL)](https://www.linkedin.com/in/your-profile)
-
+- LinkedIn: [[Author Profile](https://www.linkedin.com/in/luis-legal-engineer/)]
 If you are evaluating this project for hiring, partnership, or product incubation, start with the whitepaper and then run the zero-setup demo.
