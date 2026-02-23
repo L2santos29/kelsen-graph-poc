@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  tests:
+  quality-gate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -28,8 +28,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run test suite
+      - name: Run static audit (Ruff + Mypy)
         env:
           LLM_API_KEY: ci-dummy-key
           LLM_API_URL: https://example.invalid/v1/chat/completions
-        run: pytest -q
+        run: make lint
+
+      - name: Run logical test suite (Pytest)
+        env:
+          LLM_API_KEY: ci-dummy-key
+          LLM_API_URL: https://example.invalid/v1/chat/completions
+        run: make test
