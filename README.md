@@ -2,6 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![CI](https://github.com/L2santos29/kelsen-graph-poc/actions/workflows/ci.yml/badge.svg)](https://github.com/L2santos29/kelsen-graph-poc/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Project Status](https://img.shields.io/badge/Status-Production--Style%20PoC-0A7E3B)](#)
 [![Paradigm](https://img.shields.io/badge/Paradigm-Neuro--Symbolic-6A1B9A)](#)
 
@@ -104,6 +105,8 @@ This allows the same architecture to demonstrate approval, rejection, and except
 ## 5) Author
 
 Built by a **Legal Engineer** focused on bridging strict legal doctrine and auditable software execution.
+
+Contributions are welcome from engineers aligned with deterministic LegalTech standards. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a Pull Request.
 
 - LinkedIn: [Luis Daniel Dos Santos](https://www.linkedin.com/in/luis-legal-engineer/)
 If you are evaluating this project for hiring, partnership, or product incubation, start with the whitepaper and then run the zero-setup demo.
